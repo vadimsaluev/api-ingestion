@@ -9,7 +9,6 @@ import requests
 
 # date format validation
 def validate_date(date_str: str) -> str:
-    """Validate date format YYYYMMDD."""
     try:
         datetime.strptime(date_str, "%Y%m%d")
         return date_str
@@ -24,17 +23,21 @@ def fetch_page(
     headers: Dict[str, str],
     params: Dict[str, Any],
 ) -> Dict[str, Any]:
-    """Fetch a single page from API."""
     response = requests.get(url, headers=headers, params=params, timeout=30)
     response.raise_for_status()
     return response.json()
 
 # dumping results
 def save_json(data: Dict[str, Any], output_dir: str, page: int) -> None:
-    """Save raw JSON response to disk."""
     filename = os.path.join(output_dir, f"response_page_{page}.json")
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+
+# writing log
+def write_log(message: str, log_path: str) -> None:
+    timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+    with open(log_path, "a", encoding="utf-8") as log_file:
+        log_file.write(f"{timestamp} - {message}\n")
 
 # main loop to fetch paginated data
 def main() -> None:
@@ -64,15 +67,24 @@ def main() -> None:
 
     os.makedirs(args.output_dir, exist_ok=True)
 
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    log_path = os.path.join(script_dir, "log.txt")
+
     has_next = True
     page = 1
+    total_records_counted = 0
 
     while has_next:
         try:
-            print(f"Fetching page {page}...")
+            current_message = f"Fetching page {page}"
+            write_log(current_message, log_path)
+            print(current_message)
+            
             response_json = fetch_page(args.url, headers, params)
         except requests.RequestException as exc:
-            print(f"ERROR: Failed to fetch page {page}: {exc}", file=sys.stderr)
+            error_message = f"ERROR: Failed to fetch page {page}: {exc}"
+            write_log(error_message, log_path)
+            print(error_message, file=sys.stderr)
             sys.exit(1)
 
         save_json(response_json, args.output_dir, page)
@@ -86,6 +98,10 @@ def main() -> None:
         page += 1
         params["page"] = page
 
+    #finalization
+    current_message = f"total records fetched - {total_records_counted}"
+    write_log(current_message, log_path)
+    print(current_message)
     print("Data extraction completed successfully.")
 
 
