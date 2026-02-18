@@ -222,7 +222,7 @@ def main():
             records = response_json.get("records", [])
             total_records_counted += len(records)
 
-            # Transform for BigQuery
+            # transform for BigQuery
             transformed_records = [
                 transform_record_for_bq(r, file_name, args.gdrive_path)
                 for r in records
@@ -241,6 +241,7 @@ def main():
 
             page += 1
 
+        # increment to fetch next date
         current_date += timedelta(days=1)
 
     write_log(f"total records fetched - {total_records_counted}", log_path)
