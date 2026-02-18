@@ -23,10 +23,87 @@ ADR-2: Additional metadata - the minimal enchancement is:
     3. source_date
     4. source_gdrive_path
 
+ADR-3: Suggested DQ checks at this stage:
+    Rationale: since this layer is a bronze layer, no real data transformation is advised, however during moving the data towards conformed (silver) and modelled (gold) layers following Data Observability checks are advised:
+    -- data observability
+    DQ1. No NULLS in PK or its components:
+    SELECT COUNT(1)
+    FROM ga_sessions_raw
+    WHERE session_pk IS NULL
+    OR fullVisitorId IS NULL
+    OR visitId IS NULL
+
+    DQ2. No NULLs in visitStartTime:
+    SELECT COUNT(1)
+    FROM ga_sessions_raw
+    WHERE visitStartTime IS NULL
+
+    DQ3. Are there zeros in visits? Not a constraint but an indicator for possible division by zero in analytics.
+    SELECT COUNT(1)
+    FROM ga_sessions_raw
+    WHERE totals.visits = 0
+
+    -- data consistency
+    DQ4. No negatives in metrics
+    SELECT COUNT(1)
+    FROM ga_sessions_raw
+    WHERE totals.pageviews < 0
+    OR totals.hits < 0
+
+    DQ5. No duplicates of visitId within a single date:
+    SELECT visitId, date, COUNT(1)
+    FROM ga_sessions_raw
+    GROUP BY visitId, date
+    HAVING COUNT(1) > 1
+
+    DQ6. Bounce consistency (1 bounce -> 1 pageview)
+    SELECT COUNT(1)
+    FROM ga_sessions_raw
+    WHERE totals.bounces = 1
+    AND totals.pageviews > 1
+
+    DQ7. newVisits consistency (1 newVisits -> 1 visitNumber)
+    SELECT COUNT(1)
+    FROM ga_sessions_raw
+    WHERE totals.newVisits = 1
+    AND visitNumber > 1
+
+    -- some business-critical checks
+    DQ8. Channel must not be NULL, as it is critical for analytics
+    SELECT COUNT(1)
+    FROM ga_sessions_raw
+    WHERE channelGrouping IS NULL
+
+    DQ9. Geo must not be NULL, as it will not be possible to create splits by GEO with NULLs
+    SELECT COUNT(1)
+    FROM ga_sessions_raw
+    WHERE geoNetwork.country IS NULL
+    
+    -- data completeness
+    DQ10. Total records comparison after loading:
+    if sum(records_fetched) != pagination.total_records:
+        alert("Incomplete extraction")
+    
+    DQ11. Dates with empty records.
+    SELECT date, COUNT(1)
+    FROM ga_sessions_raw
+    GROUP BY date
+    HAVING COUNT(1) = 0
+
+    -- data freshness (before starting the dbt transformation)
+    SELECT MAX(load_timestamp)
+    FROM ga_sessions_raw
+
+    if NOW() - max(load_timestamp) < SLA_threshold -> we will throw an exception that there are gaps in time series or trigger missing data loading from closed periods.
+
+    Implication: we will not physically touch the data in this layer, and it is recommended to leverage dbt for performing DQ checks on the way towards conformed (data observability) and modelled (business rules checks). An agreement what to do with the misses will be needed - skipping misses vs substituting missing data with suitable for analytics values (e.g. NULLs -> blanks etc.).
+    Conceptually we separate technical observability checks from business semantic validation. Bronze ensures structural integrity, Silver ensures metric consistency, and Gold enforces analytics/KPI correctness.
+
 Installation and running the script:
 1. Clone the repository into the environment where you have Python of version >=3.10.0 installed.
 2. Ensure you have credentials for Google Drive (gdrive path) and BQ connection (project, dataset, key).
-3. Run command from the terminal (configure desired start-date and end-date within script call command):
+3. Check requirements in the requirements.txt, ensure you have your dependencies satisfied
+4. Run command from the terminal (configure desired start-date and end-date within script call command):
   python fetch_api_data.py \
   --url "https://your-API-URL" \
   --api-key "your-API-key" \
