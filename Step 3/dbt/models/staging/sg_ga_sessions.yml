@@ -1,0 +1,25 @@
+version: 2
+
+models:
+  - name: stg_ga_sessions
+    columns:
+      - name: session_pk
+        tests:
+          - not_null
+          - unique
+
+      - name: visitor_id
+        tests:
+          - not_null
+
+      - name: session_date
+        tests:
+          - not_null
+
+      - name: hits
+        tests:
+          - not_null
+
+      - name: pageviews
+        tests:
+          - not_null

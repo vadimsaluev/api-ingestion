@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: bronze
+    database: "{{ target.project }}"
+    schema: bronze_layer
+    tables:
+      - name: ga_sessions_raw
+        description: "Raw ingestion of GA sessions API"

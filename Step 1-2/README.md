@@ -160,15 +160,15 @@ ADR-3: Suggested DQ checks at this stage:
     SELECT MAX(load_timestamp)
     FROM ga_sessions_raw
 
-    if NOW() - max(load_timestamp) < SLA_threshold -> we will throw an exception that there are gaps in time series or trigger missing data loading from closed periods.
+    if NOW() - max(load_timestamp) < SLA_threshold -> we will throw an exception that there are gaps in time series and/or trigger missing data loading from closed periods.
 
-    Implication: we will not physically touch the data in this layer, and it is recommended to leverage dbt for performing DQ checks on the way towards conformed (data observability) and modelled (business rules checks). An agreement what to do with the misses will be needed - skipping misses vs substituting missing data with suitable for analytics values (e.g. NULLs -> blanks etc.).
+    Implication: we will not physically touch the data in this layer, and it is recommended to leverage dbt for performing DQ checks on the way towards conformed (data observability) and modelled (business rules checks) layers. An agreement on what to do with the misses will be needed - skipping misses vs substituting missing data with suitable for analytics values (e.g. NULLs -> blanks etc.).
     Conceptually we separate technical observability checks from business semantic validation. Bronze (raw) ensures structural integrity, Silver (conformed/staging) ensures metric consistency, and Gold (mart) enforces analytics/KPI correctness.
 
 Installation and running the script:
 1. Clone the repository into the environment where you have Python of version >=3.10.0 installed.
 2. Ensure you have credentials for Google Drive (gdrive path) and BQ connection (project, dataset, key).
-3. Check requirements in the requirements.txt, ensure you have your dependencies satisfied
+3. Check requirements in the requirements.txt, setup venv and/or ensure you have your dependencies satisfied, you can skip psycopg if you do not intent to play with Postgres
 4. Run command from the terminal (configure desired start-date and end-date within script call command):
   python fetch_api_data.py \
   --url "https://your-API-URL" \
