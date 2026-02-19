@@ -10,7 +10,7 @@ Below are summarised cost assumptions, please assess them from this file, as wit
 All figures are approximate, to illustrate cost component balance (infra only, no salary funds):
 
 ----
-Initial investments (one-off for initial setup) if managed orchestration is preferred:
+Initial investments (one-off for initial setup) if containerization/managed orchestration is preferred:
 ----
 Container Registry      - ~€350/first month
 
