@@ -4,6 +4,8 @@ To run DAG successfully, copy the file from Step 1-2 to the folder of the enviro
 
 Dbt models are exemplary, for illustration of a chain of transformations.
 
+For cost assumptions please refer to the root README.md file.
+
 Final physical data model:
 
     Staging (silver):

@@ -5,6 +5,8 @@ Installation notes are down below.
 Important: Do not mind PostgreSQL sections, I used them as a test as I do not have a GCP project set up for my private use, unless you want to do classic .
 Important: This version of script does not really save JSON files into GDrive, just emulates saving mechanism for the sake of preserving disk space in case of excessive loads.
 
+For cost assumptions please refer to the root README.md file.
+
 ADR-0: Use a mock API, not the GA4 native integration with BigQuery.
     Rationale: Usually in production, in cases like this we should use the Occam's razor principle and do not increase IT complexity without strong neccessity. This means, that if same data as the data from this mock API is available for integration directly from GA4 feed, it is architecturally advised to use native integration between GA4 and GCP and ingest events directly without creating an additional potential breaking point.
     Implication: Since this exersise is done solely for tech. skills assessment, we assume that in this situation we have chosen from two comparable solutions options the scenario with leveraging an API as data source due to some random reasons wich we will not further consider. Just for the sake of keeping a historical Architectuire Decision Record - choosing another (recommended) option with native integration would affect the cost, the data model and overall downstream pipeline design, which we do not consider in the course of this evaluation.
@@ -166,7 +168,7 @@ ADR-3: Suggested DQ checks at this stage:
     Conceptually we separate technical observability checks from business semantic validation. Bronze (raw) ensures structural integrity, Silver (conformed/staging) ensures metric consistency, and Gold (mart) enforces analytics/KPI correctness.
 
 Installation and running the script:
-1. Clone the repository into the environment where you have Python of version >=3.10.0 installed.
+1. Clone the repository into the environment where you have Python of version >=3.11.0 installed.
 2. Ensure you have credentials for Google Drive (gdrive path) and BQ connection (project, dataset, key).
 3. Check requirements in the requirements.txt, setup venv and/or ensure you have your dependencies satisfied, you can skip psycopg if you do not intent to play with Postgres
 4. Run command from the terminal (configure desired start-date and end-date within script call command):
